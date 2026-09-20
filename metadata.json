@@ -1,0 +1,6 @@
+{
+  "name": "AgentBlazer Club - SJEC CSE",
+  "description": "Autonomous & Agentic AI Systems student initiative at Department of Computer Science & Engineering, St Joseph Engineering College, Mangaluru.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
