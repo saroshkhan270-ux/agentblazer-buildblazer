@@ -1,50 +1,16 @@
-# AgentBlazer Build Blazer — Phase 2
+# React + Vite
 
-Live build phase for **AgentBlazer Club's** Build Blazer event at SJEC.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-This repo is the starting point for Phase 2, where third-year teams fork it and build the winning design into a live, deployed website.
+Currently, two official plugins are available:
 
-## How this works
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-1. **Fork** this repository into your own GitHub account.
-2. Clone your fork locally.
-3. Implement the winning Figma design assigned to your team.
-4. Commit early and often — the process matters as much as the result.
-5. Deploy your build (Vercel, Netlify, GitHub Pages, or similar).
-6. Submit your fork link + live deployment link before the deadline.
+## React Compiler
 
-## Getting started
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-```bash
-git clone https://github.com/<your-username>/agentblazer-buildblazer-p2.git
-cd agentblazer-buildblazer-p2
-# install dependencies here once the stack is decided
-```
+## Expanding the ESLint configuration
 
-## Team
-
-| Role | Name |
-|------|------|
-| Team Lead | TBD |
-| Members | TBD |
-
-## Design reference
-
-Link the Phase 1 Figma file here once assigned.
-
-## Tech stack
-
-To be filled in by each team (e.g. React, Tailwind, Next.js).
-
-## Deployment
-
-Live link: _add once deployed_
-
-## Rules
-
-- Fork, don't clone-and-push directly to this repo.
-- Stick to the assigned Figma design as closely as possible.
-- Submit via pull request or the link-submission form (whichever the organizers specify).
-
----
-Organized by **AgentBlazer Club**, SJEC, in collaboration with **Cipher (CSE Association)**.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
