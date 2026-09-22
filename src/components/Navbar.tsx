@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActiveTab, ThemeMode } from '../types';
-import { Home, Users, Calendar, UserPlus, Code2, Sparkles, Flame, Snowflake, Cpu } from 'lucide-react';
+import { Home, Users, Calendar, UserPlus, Sparkles, Flame, Snowflake, Cpu } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -229,21 +229,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Sparkles className="w-4 h-4 animate-spin" style={{ animationDuration: '6s' }} />
           </button>
 
-          {/* Source Code Action Button with Radiant Border */}
-          <button
-            id="open-source-code-btn"
-            onClick={onOpenSourceCode}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 font-mono text-xs font-semibold transition-all cursor-pointer ${
-              isFrost
-                ? 'bg-slate-900 text-white border-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:shadow-[0_0_25px_rgba(14,165,233,0.7)]'
-                : isInferno
-                ? 'bg-[#220c04] text-amber-200 border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)] hover:shadow-[0_0_30px_rgba(249,115,22,0.8)]'
-                : 'bg-[#150728] text-cyan-200 border-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.6),0_0_50px_rgba(168,85,247,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.9),0_0_70px_rgba(168,85,247,0.6)]'
-            }`}
-          >
-            <Code2 className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span>Source Code</span>
-          </button>
         </div>
       </div>
 

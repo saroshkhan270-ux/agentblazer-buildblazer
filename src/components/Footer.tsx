@@ -1,21 +1,17 @@
 import React from 'react';
 import { ActiveTab, ThemeMode } from '../types';
-import { Cpu, ExternalLink, Sparkles, Code2, Heart } from 'lucide-react';
+import { Cpu, ExternalLink, Heart } from 'lucide-react';
 
 interface FooterProps {
   theme: ThemeMode;
   setActiveTab: (tab: ActiveTab) => void;
   onOpenCharter: () => void;
-  onOpenSourceCode: () => void;
-  onReplayIntro: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   theme,
   setActiveTab,
   onOpenCharter,
-  onOpenSourceCode,
-  onReplayIntro,
 }) => {
   const isFrost = theme === 'frost';
   const isInferno = theme === 'inferno';
@@ -64,23 +60,6 @@ export const Footer: React.FC<FooterProps> = ({
               St Joseph Engineering College, Vamanjoor, Mangaluru, Karnataka - 575028, India
             </p>
 
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={onReplayIntro}
-                className="text-xs font-mono flex items-center gap-1.5 opacity-70 hover:opacity-100 underline decoration-dotted cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Replay Phoenix Intro</span>
-              </button>
-              <span>•</span>
-              <button
-                onClick={onOpenSourceCode}
-                className="text-xs font-mono flex items-center gap-1.5 opacity-70 hover:opacity-100 underline decoration-dotted cursor-pointer"
-              >
-                <Code2 className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Source Code</span>
-              </button>
-            </div>
           </div>
 
           {/* Quick Links Column */}

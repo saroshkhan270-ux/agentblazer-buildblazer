@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { ThemeMode } from '../types';
-import { Sparkles, Zap, Flame, Eye, Volume2, VolumeX } from 'lucide-react';
+import { Zap, Eye } from 'lucide-react';
 
 interface IntroScreenProps {
   onContinue: () => void;
@@ -76,11 +76,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
   };
 
   const handleTap = () => {
-    if (stage === 'eyes') {
-      // Advance to Phoenix emergence immediately
-      setStage('phoenix');
-      playSynthesizedAudio('swoop');
-    } else if (stage === 'phoenix') {
+    if (stage !== 'warp') {
       triggerWarp();
     }
   };
@@ -177,7 +173,6 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
       {/* PHOENIX CINEMATIC STAGE (Sequence: Eyes -> Phoenix -> Warp) */}
       <div
         className="relative z-10 w-full h-full flex flex-col items-center justify-center cursor-pointer"
-        onClick={handleTap}
       >
         <AnimatePresence mode="wait">
           {/* STAGE 1: Darkness with Fiercely Glowing Cyan Eyes (Starting in video) */}

@@ -70,7 +70,7 @@ export const FACULTY_COUNCIL: LeadershipMember[] = [
     departmentRole: 'Faculty Coordinator',
     category: 'faculty',
     initials: 'KF',
-    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/keith-fernandes.jpg',
     badge: 'LEADERSHIP',
     tag: 'CSE Department'
   }
@@ -86,7 +86,7 @@ export const STUDENT_OFFICERS: LeadershipMember[] = [
     category: 'core-officer',
     description: 'Guiding club vision, university collaborations, and strategic workshop series.',
     initials: 'RS',
-    photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/ruben-saldanha.jpg',
     badge: 'LEADERSHIP',
     college: 'SJEC CSE'
   },
@@ -99,7 +99,7 @@ export const STUDENT_OFFICERS: LeadershipMember[] = [
     category: 'core-officer',
     description: 'Coordinating student mentorship, event operations, and community growth.',
     initials: 'AP',
-    photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/ajay-preenal-dsouza.jpg',
     badge: 'LEADERSHIP',
     college: 'SJEC CSE'
   },
@@ -112,7 +112,7 @@ export const STUDENT_OFFICERS: LeadershipMember[] = [
     category: 'core-officer',
     description: 'Technical architect, hands-on lab environments, and repository supervision.',
     initials: 'SD',
-    photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/stevin-dsouza.jpg',
     badge: 'LEADERSHIP',
     college: 'SJEC CSE'
   },
@@ -125,7 +125,7 @@ export const STUDENT_OFFICERS: LeadershipMember[] = [
     category: 'core-officer',
     description: 'Managing cloud compute budgets, venue infrastructure, and participant toolkits.',
     initials: 'FC',
-    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/frenny-chrystal-saldanha.jpg',
     badge: 'LEADERSHIP',
     college: 'SJEC CSE'
   },
@@ -138,7 +138,7 @@ export const STUDENT_OFFICERS: LeadershipMember[] = [
     category: 'core-officer',
     description: 'Documentation, accreditation reporting, meeting minutes, and member onboarding.',
     initials: 'JG',
-    photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/joyline-galbao.jpg',
     badge: 'LEADERSHIP',
     college: 'SJEC CSE'
   },
@@ -151,7 +151,7 @@ export const STUDENT_OFFICERS: LeadershipMember[] = [
     category: 'core-officer',
     description: 'Brand storytelling, photo documentation, visual design, and social publications.',
     initials: 'CN',
-    photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/chinthan-n-v.jpg',
     badge: 'LEADERSHIP',
     college: 'SJEC CSE'
   }
@@ -207,21 +207,21 @@ export const WORKSHOP_EVENTS: WorkshopEvent[] = [
     gallery: [
       {
         id: 'gsoc-1',
-        url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=900&auto=format&fit=crop&q=80',
+        url: '/events/gsoc-llm-1.jpg',
         title: 'Live RAG Architecture Walkthrough',
         caption: 'GSoC contributor and mentor demonstrating LangChain pipelines and local embeddings.',
         tag: 'Session Demo'
       },
       {
         id: 'gsoc-2',
-        url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=900&auto=format&fit=crop&q=80',
+        url: '/events/gsoc-llm-2.jpg',
         title: 'Hands-on Student Teams',
         caption: 'Undergraduate teams debugging Git branches and testing vector store retrieval limits.',
         tag: 'Lab Session'
       },
       {
         id: 'gsoc-3',
-        url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=900&auto=format&fit=crop&q=80',
+        url: '/events/gsoc-llm-3.jpg',
         title: 'Gradio Prototyping Showcase',
         caption: 'Live prototype deployment directly to HuggingFace Spaces within the workshop window.',
         tag: 'Deployment'
@@ -242,28 +242,28 @@ export const WORKSHOP_EVENTS: WorkshopEvent[] = [
     gallery: [
       {
         id: 'prompt-1',
-        url: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=900&auto=format&fit=crop&q=80',
+        url: '/events/prompt-ops-1.jpg',
         title: 'PROMPT OPS-2K26 Challenge Banner & Live Arena',
         caption: 'CSE Department • AgentBlazer Club & Cipher hackathon kickoff and countdown.',
         tag: 'Official Contest'
       },
       {
         id: 'prompt-2',
-        url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=900&auto=format&fit=crop&q=80',
+        url: '/events/prompt-ops-2.jpg',
         title: 'Contestants at Work',
         caption: 'First and second year engineers collaborating on test-driven prompt iterations.',
         tag: 'Hackathon Round'
       },
       {
         id: 'prompt-3',
-        url: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=900&auto=format&fit=crop&q=80',
+        url: '/events/prompt-ops-3.jpg',
         title: 'Evaluation Leaderboard',
         caption: 'Real-time scoring rubric evaluating zero-shot precision and token efficiency.',
         tag: 'Leaderboard'
       },
       {
         id: 'prompt-4',
-        url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=900&auto=format&fit=crop&q=80',
+        url: '/events/prompt-ops-4.jpg',
         title: 'Award Ceremony & Recognition',
         caption: 'Cash prizes and Salesforce certification vouchers awarded to the top 3 finalists.',
         tag: 'Valedictory'
@@ -340,14 +340,14 @@ export const WORKSHOP_EVENTS: WorkshopEvent[] = [
     gallery: [
       {
         id: 'sec-1',
-        url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=900&auto=format&fit=crop&q=80',
+        url: '/events/cybersecurity-1.jpg',
         title: 'Cyber Security & Career Pathways Poster & Session',
         caption: 'Guest Speaker Mr. Suhas Nayak conducting real-time threat intelligence labs.',
         tag: 'Poster & Talk'
       },
       {
         id: 'sec-2',
-        url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=900&auto=format&fit=crop&q=80',
+        url: '/events/cybersecurity-2.jpg',
         title: 'Live Network Packet Capture',
         caption: 'Demonstrating defensive OSINT tools and privilege escalation mitigation.',
         tag: 'Defense'

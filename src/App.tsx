@@ -137,8 +137,6 @@ export default function App() {
             theme={theme}
             setActiveTab={setActiveTab}
             onOpenCharter={() => setIsCharterOpen(true)}
-            onOpenSourceCode={() => setIsSourceCodeOpen(true)}
-            onReplayIntro={() => setShowIntro(true)}
           />
 
           {/* Official Charter Modal */}
