@@ -2,11 +2,11 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
-  'https://scfwyhdjblupxxkfrgbx.supabase.co';
+  'https://esrlgfeqilrzuhbicpbb.supabase.co';
 
 const SUPABASE_ANON_KEY =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
-  'sb_publishable_pgdvO-2DDQqcJr7w2TgxoQ_At9dkkSk';
+  'sb_publishable_JJQDCnceRWg8RsCqNNP4pg_BZRtYU3h';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
