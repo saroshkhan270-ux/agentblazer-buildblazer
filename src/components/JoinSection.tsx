@@ -1,3 +1,5 @@
+import { useData } from '../context/DataContext';
+import { cleanSecureInput, hasSQLInjectionThreat } from '../utils/sanitize';
 import React, { useState } from 'react';
 import { ThemeMode } from '../types';
 import { Send, CheckCircle, Mail, MapPin, Building, ArrowRight, UserPlus, Sparkles, X, ShieldCheck } from 'lucide-react';
@@ -9,6 +11,7 @@ interface JoinSectionProps {
 }
 
 export const JoinSection: React.FC<JoinSectionProps> = ({ theme, onOpenCharter }) => {
+  const { addApplication } = useData();
   const isFrost = theme === 'frost';
   const isInferno = theme === 'inferno';
 
@@ -35,18 +38,44 @@ export const JoinSection: React.FC<JoinSectionProps> = ({ theme, onOpenCharter }
     e.preventDefault();
     setIsSubmitting(true);
 
+    if (
+      hasSQLInjectionThreat(formData.fullName) ||
+      hasSQLInjectionThreat(formData.email) ||
+      hasSQLInjectionThreat(formData.statement)
+    ) {
+      alert('Security Alert: Prohibited syntax detected.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const res = await fetch('/api/membership', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      // 1. Direct Supabase Cloud persistence
+      const sbResult = await addApplication({
+        name: cleanSecureInput(formData.fullName, 100),
+        email: cleanSecureInput(formData.email, 100),
+        usn: cleanSecureInput(formData.usn, 20),
+        year: formData.year,
+        department: formData.branch,
+        track: formData.domain,
+        statement: cleanSecureInput(formData.statement, 1000),
+        status: 'approved',
       });
-      const data = await res.json();
-      if (data.success && data.application) {
-        setServerApplicationId(data.application.id);
+
+      if (sbResult?.id) {
+        setServerApplicationId(sbResult.id);
+      }
+
+      // 2. Also notify local backend if running
+      try {
+        await fetch('/api/membership', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      } catch {
+        // Supabase already stored it
       }
     } catch {
-      // Fallback local ID if backend is offline
       setServerApplicationId(`AB-MEM-${Math.floor(1000 + Math.random() * 9000)}`);
     } finally {
       setIsSubmitting(false);

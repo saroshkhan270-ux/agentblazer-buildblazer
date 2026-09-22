@@ -165,8 +165,14 @@ export const Footer: React.FC<FooterProps> = ({
           <div>
             © 2025-2026 AgentBlazer Club, SJEC CSE • Autonomous AI Initiative
           </div>
-          <div className="flex items-center gap-1 text-[11px]">
+          <div className="flex items-center gap-3 text-[11px]">
             <span>Crafted for SJEC Trailblazers</span>
+            <a
+              href="#admin"
+              className="opacity-60 hover:opacity-100 transition-opacity hover:underline"
+            >
+              [ admin portal ]
+            </a>
           </div>
         </div>
 

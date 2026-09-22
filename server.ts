@@ -56,7 +56,7 @@ const inquiries: ContactInquiry[] = [];
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 
   // JSON Body parsing
   app.use(express.json());
@@ -179,6 +179,7 @@ async function startServer() {
   // ==========================================
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
+      root: __dirname,
       server: { middlewareMode: true },
       appType: 'spa',
     });

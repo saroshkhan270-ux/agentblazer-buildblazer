@@ -17,13 +17,40 @@ import { CharterModal } from './components/CharterModal';
 import { SourceCodeModal } from './components/SourceCodeModal';
 import { CustomCursor } from './components/CustomCursor';
 import { AnimatePresence, motion } from 'motion/react';
+import { DataProvider } from './context/DataContext';
+import { useAdminAuth } from './hooks/useAdminAuth';
+import { AdminAuthGate } from './components/Admin/AdminAuthGate';
+import { AdminDashboard } from './components/Admin/AdminDashboard';
 
-export default function App() {
+const checkIsAdminRoute = (): boolean => {
+  try {
+    const hash = window.location.hash.replace('#', '').replace(/^\/+/, '').toLowerCase();
+    if (hash === 'admin') return true;
+    const path = window.location.pathname.replace(/^\/+/, '').toLowerCase();
+    return path === 'admin';
+  } catch {
+    return false;
+  }
+};
+
+function MainApp() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
   const [theme, setTheme] = useState<ThemeMode>('violet');
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isCharterOpen, setIsCharterOpen] = useState<boolean>(false);
   const [isSourceCodeOpen, setIsSourceCodeOpen] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(checkIsAdminRoute);
+
+  const { isAuthenticated, refreshAuth, logout: handleAdminLogout } = useAdminAuth();
+
+  // Listen for hash changes to support #admin
+  useEffect(() => {
+    const handleHashChange = () => {
+      setIsAdmin(checkIsAdminRoute());
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Scroll to top when switching tabs
   useEffect(() => {
@@ -43,9 +70,38 @@ export default function App() {
     }
   };
 
+  // ADMIN MODE ROUTING
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#07040e] text-white font-mono">
+        <div className="border-b border-purple-900/60 bg-[#0d0718] px-6 py-3 flex items-center justify-between">
+          <a
+            href="#top"
+            onClick={() => setIsAdmin(false)}
+            className="text-xs uppercase tracking-wider text-purple-400 hover:text-white cursor-pointer"
+          >
+            &larr; Return to AgentBlazer Portal
+          </a>
+          <span className="text-xs text-purple-400/60">// ADMIN_MODE</span>
+        </div>
+
+        {isAuthenticated ? (
+          <AdminDashboard
+            onBackToSite={() => setIsAdmin(false)}
+            onLogout={handleAdminLogout}
+          />
+        ) : (
+          <AdminAuthGate
+            onAuthenticated={refreshAuth}
+            onCancel={() => setIsAdmin(false)}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen font-sans transition-colors duration-500 relative flex flex-col ${getThemeWrapperClass()}`}>
-      {/* Radiant Custom Trailing Cursor as seen in MP4 video */}
       <CustomCursor theme={theme} />
       
       {/* 1. Fullscreen Phoenix Intro Screen */}
@@ -62,7 +118,6 @@ export default function App() {
       {/* 2. Main Portal Interface */}
       {!showIntro && (
         <div className="flex-1 flex flex-col">
-          {/* Header Navigation */}
           <Navbar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -72,7 +127,6 @@ export default function App() {
             onReplayIntro={() => setShowIntro(true)}
           />
 
-          {/* Main Content View with smooth tab transition */}
           <main className="flex-1">
             <AnimatePresence mode="wait">
               {activeTab === 'home' && (
@@ -132,14 +186,12 @@ export default function App() {
             </AnimatePresence>
           </main>
 
-          {/* Institutional Footer */}
           <Footer
             theme={theme}
             setActiveTab={setActiveTab}
             onOpenCharter={() => setIsCharterOpen(true)}
           />
 
-          {/* Official Charter Modal */}
           {isCharterOpen && (
             <CharterModal
               theme={theme}
@@ -147,7 +199,6 @@ export default function App() {
             />
           )}
 
-          {/* Interactive Source Code Explorer & ZIP Downloader */}
           {isSourceCodeOpen && (
             <SourceCodeModal
               theme={theme}
@@ -157,5 +208,13 @@ export default function App() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <DataProvider>
+      <MainApp />
+    </DataProvider>
   );
 }
