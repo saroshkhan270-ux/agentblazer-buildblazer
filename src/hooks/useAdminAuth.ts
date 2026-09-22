@@ -9,6 +9,14 @@ export interface AuthResult {
   message?: string;
 }
 
+export interface RegisteredAdmin {
+  username: string;
+  password?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  registeredAt: string;
+  approvedAt?: string;
+}
+
 const MAX_LOGIN_ATTEMPTS = 3;
 const LOCKOUT_DURATION_SECONDS = 30;
 
@@ -20,6 +28,8 @@ export function useAdminAuth() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [failedAttempts, setFailedAttempts] = useState<number>(0);
   const [lockoutTimer, setLockoutTimer] = useState<number>(0);
+  const [adminRequests, setAdminRequests] = useState<RegisteredAdmin[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState<boolean>(false);
 
   // Lockout countdown timer
   useEffect(() => {
@@ -36,7 +46,7 @@ export function useAdminAuth() {
     return () => clearInterval(interval);
   }, [lockoutTimer]);
 
-  // Session recovery from Supabase & active session
+  // Session recovery
   useEffect(() => {
     let isMounted = true;
 
@@ -80,7 +90,133 @@ export function useAdminAuth() {
     };
   }, []);
 
-  // Login
+  // Fetch registered admin requests
+  const fetchAdminRequests = useCallback(async () => {
+    setIsLoadingRequests(true);
+    try {
+      const { data } = await supabase
+        .from('club_content')
+        .select('value')
+        .eq('key', 'admin_users_list')
+        .maybeSingle();
+
+      if (Array.isArray(data?.value)) {
+        setAdminRequests(data.value as RegisteredAdmin[]);
+      } else {
+        setAdminRequests([]);
+      }
+    } catch (err) {
+      console.warn('Error fetching admin requests:', err);
+    } finally {
+      setIsLoadingRequests(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchAdminRequests();
+    }
+  }, [isAuthenticated, fetchAdminRequests]);
+
+  // Approve admin request
+  const approveAdmin = useCallback(async (targetUsername: string) => {
+    try {
+      const { data } = await supabase
+        .from('club_content')
+        .select('value')
+        .eq('key', 'admin_users_list')
+        .maybeSingle();
+
+      let list: RegisteredAdmin[] = Array.isArray(data?.value) ? data.value : [];
+      list = list.map((u) =>
+        u.username.toLowerCase() === targetUsername.toLowerCase()
+          ? { ...u, status: 'approved', approvedAt: new Date().toISOString() }
+          : u
+      );
+
+      const { error } = await supabase.from('club_content').upsert(
+        {
+          key: 'admin_users_list',
+          value: list,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+
+      if (error) throw error;
+      setAdminRequests(list);
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to approve admin.';
+      return { success: false, error: msg };
+    }
+  }, []);
+
+  // Reject admin request
+  const rejectAdmin = useCallback(async (targetUsername: string) => {
+    try {
+      const { data } = await supabase
+        .from('club_content')
+        .select('value')
+        .eq('key', 'admin_users_list')
+        .maybeSingle();
+
+      let list: RegisteredAdmin[] = Array.isArray(data?.value) ? data.value : [];
+      list = list.map((u) =>
+        u.username.toLowerCase() === targetUsername.toLowerCase()
+          ? { ...u, status: 'rejected' }
+          : u
+      );
+
+      const { error } = await supabase.from('club_content').upsert(
+        {
+          key: 'admin_users_list',
+          value: list,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+
+      if (error) throw error;
+      setAdminRequests(list);
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to reject admin.';
+      return { success: false, error: msg };
+    }
+  }, []);
+
+  // Delete admin
+  const deleteAdmin = useCallback(async (targetUsername: string) => {
+    try {
+      const { data } = await supabase
+        .from('club_content')
+        .select('value')
+        .eq('key', 'admin_users_list')
+        .maybeSingle();
+
+      let list: RegisteredAdmin[] = Array.isArray(data?.value) ? data.value : [];
+      list = list.filter((u) => u.username.toLowerCase() !== targetUsername.toLowerCase());
+
+      const { error } = await supabase.from('club_content').upsert(
+        {
+          key: 'admin_users_list',
+          value: list,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+
+      if (error) throw error;
+      setAdminRequests(list);
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete admin.';
+      return { success: false, error: msg };
+    }
+  }, []);
+
+  // Login with Approval Verification
   const login = useCallback(async (usernameOrEmail: string, pass: string): Promise<AuthResult> => {
     if (lockoutTimer > 0) {
       const msg = `Security lockout active. Please wait ${lockoutTimer}s before retrying.`;
@@ -143,61 +279,6 @@ export function useAdminAuth() {
         }
       }
 
-      // 2. Check registered administrators in Supabase (club_content -> admin_users_list)
-      const { data: userListContent } = await supabase
-        .from('club_content')
-        .select('value')
-        .eq('key', 'admin_users_list')
-        .maybeSingle();
-
-      if (Array.isArray(userListContent?.value)) {
-        const userList = userListContent.value as Array<{ username: string; password?: string }>;
-        const matched = userList.find(
-          (u) =>
-            (u.username.toLowerCase() === cleanId.toLowerCase() ||
-             `${u.username.toLowerCase()}@agentblazer.sjec.ac.in` === cleanId.toLowerCase()) &&
-            u.password === cleanPass
-        );
-
-        if (matched) {
-          const authUser = {
-            id: `admin_${matched.username}`,
-            email: `${matched.username}@agentblazer.sjec.ac.in`,
-          } as User;
-
-          setUser(authUser);
-          setIsAuthenticated(true);
-          setFailedAttempts(0);
-          try {
-            sessionStorage.setItem('agentblazer_admin_active_user', matched.username);
-          } catch {
-            // ignore
-          }
-          return { success: true };
-        }
-      }
-
-      // Fallback default admin check
-      if (
-        (cleanId.toLowerCase() === 'admin' || cleanId.toLowerCase() === 'admin@agentblazer.sjec.ac.in') &&
-        (cleanPass === 'agentblazer@sjec2026' || cleanPass === 'cipher@sjec2026')
-      ) {
-        const authUser = {
-          id: 'admin_primary',
-          email: 'admin@agentblazer.sjec.ac.in',
-        } as User;
-
-        setUser(authUser);
-        setIsAuthenticated(true);
-        setFailedAttempts(0);
-        try {
-          sessionStorage.setItem('agentblazer_admin_active_user', 'admin');
-        } catch {
-          // ignore
-        }
-        return { success: true };
-      }
-
       // Built-in Administrator Fallback
       if (
         (cleanId.toLowerCase() === 'admin' ||
@@ -219,6 +300,54 @@ export function useAdminAuth() {
           // ignore
         }
         return { success: true };
+      }
+
+      // 2. Check registered administrators in Supabase (club_content -> admin_users_list)
+      const { data: userListContent } = await supabase
+        .from('club_content')
+        .select('value')
+        .eq('key', 'admin_users_list')
+        .maybeSingle();
+
+      if (Array.isArray(userListContent?.value)) {
+        const userList = userListContent.value as Array<RegisteredAdmin>;
+        const matched = userList.find(
+          (u) =>
+            (u.username.toLowerCase() === cleanId.toLowerCase() ||
+             `${u.username.toLowerCase()}@agentblazer.sjec.ac.in` === cleanId.toLowerCase()) &&
+            u.password === cleanPass
+        );
+
+        if (matched) {
+          // CHECK APPROVAL STATUS
+          const status = matched.status || 'pending';
+          if (status === 'pending') {
+            const msg = 'Approval Pending: Your admin registration has not yet been approved by the Head Administrator.';
+            setErrorMsg(msg);
+            return { success: false, error: msg };
+          }
+          if (status === 'rejected') {
+            const msg = 'Access Denied: Your admin registration request was rejected by the Head Administrator.';
+            setErrorMsg(msg);
+            return { success: false, error: msg };
+          }
+
+          // Approved: Grant access
+          const authUser = {
+            id: `admin_${matched.username}`,
+            email: `${matched.username}@agentblazer.sjec.ac.in`,
+          } as User;
+
+          setUser(authUser);
+          setIsAuthenticated(true);
+          setFailedAttempts(0);
+          try {
+            sessionStorage.setItem('agentblazer_admin_active_user', matched.username);
+          } catch {
+            // ignore
+          }
+          return { success: true };
+        }
       }
 
       // 3. Supabase Auth service
@@ -266,7 +395,7 @@ export function useAdminAuth() {
     }
   }, [lockoutTimer, failedAttempts]);
 
-  // Register new admin
+  // Register New Admin - Always saved with 'pending' status
   const registerAdmin = useCallback(async (newUsername: string, newPassword: string): Promise<AuthResult> => {
     setErrorMsg(null);
 
@@ -298,9 +427,9 @@ export function useAdminAuth() {
         .eq('key', 'admin_users_list')
         .maybeSingle();
 
-      let list: Array<{ username: string; password?: string }> = [];
+      let list: Array<RegisteredAdmin> = [];
       if (Array.isArray(existingContent?.value)) {
-        list = existingContent.value as Array<{ username: string; password?: string }>;
+        list = existingContent.value as Array<RegisteredAdmin>;
       }
 
       if (list.some((u) => u.username.toLowerCase() === cleanUser.toLowerCase())) {
@@ -309,7 +438,13 @@ export function useAdminAuth() {
         return { success: false, error: msg };
       }
 
-      list.push({ username: cleanUser, password: cleanPass });
+      // Add with status: 'pending'
+      list.push({
+        username: cleanUser,
+        password: cleanPass,
+        status: 'pending',
+        registeredAt: new Date().toISOString(),
+      });
 
       const { error: upsertErr } = await supabase.from('club_content').upsert(
         {
@@ -324,16 +459,11 @@ export function useAdminAuth() {
         throw upsertErr;
       }
 
-      const email = cleanUser.includes('@') ? cleanUser : `${cleanUser.toLowerCase()}@agentblazer.sjec.ac.in`;
-      try {
-        await supabase.auth.signUp({ email, password: cleanPass });
-      } catch {
-        // DB registration is persisted
-      }
+      setAdminRequests(list);
 
       return {
         success: true,
-        message: 'Successfully registered',
+        message: 'Registration submitted! Please wait for Head Admin approval before signing in.',
       };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to register admin in database.';
@@ -384,13 +514,25 @@ export function useAdminAuth() {
     }
   }, []);
 
+  const isMainAdmin =
+    user?.id === 'admin_primary' ||
+    user?.email?.toLowerCase().startsWith('admin@') ||
+    sessionStorage.getItem('agentblazer_admin_active_user')?.toLowerCase() === 'admin';
+
   return {
     user,
     session,
     isAuthenticated,
     isLoading,
+    isMainAdmin,
     errorMsg,
     lockoutTimer,
+    adminRequests,
+    isLoadingRequests,
+    fetchAdminRequests,
+    approveAdmin,
+    rejectAdmin,
+    deleteAdmin,
     login,
     registerAdmin,
     logout,

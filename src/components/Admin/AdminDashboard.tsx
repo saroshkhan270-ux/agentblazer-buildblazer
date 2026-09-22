@@ -11,6 +11,11 @@ import {
   ArrowDown,
   Plus,
   RefreshCw,
+  UserCheck,
+  ShieldAlert,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
@@ -40,14 +45,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite, on
     reorderLeadership,
   } = useData();
 
-  const { user } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'applications' | 'events' | 'leadership'>('applications');
+  const {
+    user,
+    isMainAdmin,
+    adminRequests,
+    fetchAdminRequests,
+    approveAdmin,
+    rejectAdmin,
+    deleteAdmin,
+    isLoadingRequests,
+  } = useAdminAuth();
+
+  const [activeTab, setActiveTab] = useState<'applications' | 'admin_approvals' | 'events' | 'leadership'>('applications');
   const [statusNotification, setStatusNotification] = useState<string | null>(null);
 
   const notify = (msg: string) => {
     setStatusNotification(msg);
     setTimeout(() => setStatusNotification(null), 3000);
   };
+
+  const pendingCount = adminRequests.filter((r) => r.status === 'pending').length;
 
   return (
     <div className="min-h-screen bg-[#07040e] text-white font-mono pb-20">
@@ -60,7 +77,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite, on
               AGENTBLAZER // ADMIN CMS
             </h1>
             <span className="hidden sm:inline-block rounded border border-purple-900 bg-[#07040e] px-2.5 py-0.5 text-[10px] text-purple-300">
-              SUPABASE CLOUD CONTROLLER
+              {isMainAdmin ? 'HEAD ADMINISTRATOR' : 'ADMINISTRATOR'}
             </span>
           </div>
 
@@ -108,6 +125,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite, on
             <span>Applications ({applications.length})</span>
           </button>
 
+          {/* ADMIN APPROVALS TAB */}
+          <button
+            onClick={() => setActiveTab('admin_approvals')}
+            className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === 'admin_approvals'
+                ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)]'
+                : 'text-purple-300 hover:bg-purple-900/40'
+            }`}
+          >
+            <UserCheck size={14} />
+            <span>Admin Approvals</span>
+            {pendingCount > 0 ? (
+              <span className="ml-1 rounded-full bg-amber-500 px-1.5 py-0.2 text-[10px] font-bold text-black animate-pulse">
+                {pendingCount} Pending
+              </span>
+            ) : (
+              <span className="ml-1 text-[10px] text-purple-400/80">({adminRequests.length})</span>
+            )}
+          </button>
+
           <button
             onClick={() => setActiveTab('events')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
@@ -117,7 +154,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite, on
             }`}
           >
             <Calendar size={14} />
-            <span>Events &amp; Workshops ({events.length})</span>
+            <span>Events ({events.length})</span>
           </button>
 
           <button
@@ -129,7 +166,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite, on
             }`}
           >
             <Users size={14} />
-            <span>Leadership Team ({leadership.length})</span>
+            <span>Leadership ({leadership.length})</span>
           </button>
         </div>
       </header>
@@ -142,8 +179,142 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite, on
         </div>
       )}
 
-      {/* Main CMS Container */}
+      {/* Main Container */}
       <main className="mx-auto max-w-7xl px-6 pt-8">
+        {/* ======================= TAB: ADMIN APPROVALS ======================= */}
+        {activeTab === 'admin_approvals' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <UserCheck className="text-purple-400" />
+                  <span>Admin Registration Approvals</span>
+                </h2>
+                <p className="text-xs text-purple-300 mt-1">
+                  Newly registered admin accounts require approval from the Head Administrator before login is granted.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  fetchAdminRequests();
+                  notify('Refreshed admin requests list.');
+                }}
+                disabled={isLoadingRequests}
+                className="flex items-center gap-1.5 rounded border border-purple-800 bg-[#0d0718] px-3 py-1.5 text-xs text-purple-300 hover:bg-purple-900/40 transition-colors cursor-pointer"
+              >
+                <RefreshCw size={13} className={isLoadingRequests ? 'animate-spin' : ''} />
+                <span>Refresh Requests</span>
+              </button>
+            </div>
+
+            {/* List of Admin Requests */}
+            {adminRequests.length === 0 ? (
+              <div className="rounded-xl border border-purple-900/60 bg-[#0d0718] p-12 text-center text-xs text-purple-300/70 space-y-2">
+                <Clock size={28} className="mx-auto text-purple-400 opacity-60" />
+                <div className="font-bold text-sm text-purple-200">No Admin Registration Requests</div>
+                <div>When candidates register via the "REGISTER ADMIN" tab, their requests will appear here for review.</div>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {adminRequests.map((req) => (
+                  <div
+                    key={req.username}
+                    className="rounded-xl border border-purple-900/60 bg-[#0d0718] p-5 transition-all hover:border-purple-500/50 space-y-3"
+                  >
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2.5">
+                          <span className="font-bold text-base text-white">{req.username}</span>
+                          <span className="text-xs text-purple-400 font-mono">({req.username}@agentblazer.sjec.ac.in)</span>
+                          
+                          {/* Status Badge */}
+                          {req.status === 'pending' && (
+                            <span className="flex items-center gap-1 rounded bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[11px] font-bold text-amber-300">
+                              <Clock size={11} />
+                              <span>PENDING APPROVAL</span>
+                            </span>
+                          )}
+                          {req.status === 'approved' && (
+                            <span className="flex items-center gap-1 rounded bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 text-[11px] font-bold text-emerald-400">
+                              <CheckCircle size={11} />
+                              <span>APPROVED</span>
+                            </span>
+                          )}
+                          {req.status === 'rejected' && (
+                            <span className="flex items-center gap-1 rounded bg-rose-500/20 border border-rose-500/40 px-2 py-0.5 text-[11px] font-bold text-rose-400">
+                              <XCircle size={11} />
+                              <span>REJECTED</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-purple-300/70">
+                          Registered: {new Date(req.registeredAt).toLocaleString()}
+                          {req.approvedAt && ` • Approved: ${new Date(req.approvedAt).toLocaleString()}`}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        {req.status !== 'approved' && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const res = await approveAdmin(req.username);
+                              if (res.success) {
+                                notify(`Approved admin access for "${req.username}".`);
+                              } else {
+                                notify(`Failed to approve: ${res.error}`);
+                              }
+                            }}
+                            className="flex items-center gap-1.5 rounded bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 transition-colors cursor-pointer"
+                          >
+                            <CheckCircle size={13} />
+                            <span>Approve</span>
+                          </button>
+                        )}
+
+                        {req.status !== 'rejected' && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const res = await rejectAdmin(req.username);
+                              if (res.success) {
+                                notify(`Rejected admin access for "${req.username}".`);
+                              } else {
+                                notify(`Failed to reject: ${res.error}`);
+                              }
+                            }}
+                            className="flex items-center gap-1.5 rounded border border-rose-800 px-3 py-1.5 text-xs text-rose-300 hover:bg-rose-950/40 transition-colors cursor-pointer"
+                          >
+                            <XCircle size={13} />
+                            <span>Reject</span>
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (confirm(`Completely delete admin request for "${req.username}"?`)) {
+                              await deleteAdmin(req.username);
+                              notify(`Deleted admin account "${req.username}".`);
+                            }
+                          }}
+                          className="rounded border border-purple-900 p-1.5 text-purple-400 hover:text-rose-400 hover:border-rose-900/60 transition-colors cursor-pointer"
+                          title="Delete Account"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ======================= TAB: APPLICATIONS ======================= */}
         {activeTab === 'applications' && (
           <div className="space-y-6">

@@ -38,7 +38,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
       setIsAuthorizing(false);
 
       if (res.success) {
-        setSuccessMsg('Successfully registered');
+        setSuccessMsg(res.message || 'Registration submitted! Awaiting Head Admin approval.');
         setMode('signin');
         setPassword('');
         setConfirmPassword('');
@@ -65,7 +65,6 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#07040e]/95 backdrop-blur-xl p-4 sm:p-6 font-mono text-white">
-      {/* Background Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(147,51,234,0.15),transparent_70%)] pointer-events-none" />
 
       <motion.div
@@ -150,9 +149,9 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 rounded border border-emerald-500/50 bg-emerald-500/10 p-3 text-xs text-emerald-400"
+                className="flex items-start gap-2 rounded border border-emerald-500/50 bg-emerald-500/10 p-3 text-xs text-emerald-400"
               >
-                <CheckCircle2 size={15} className="shrink-0" />
+                <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
                 <span>{successMsg}</span>
               </motion.div>
             )}
@@ -161,16 +160,16 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 rounded border border-rose-500/50 bg-rose-500/10 p-3 text-xs text-rose-400"
+                className="flex items-start gap-2 rounded border border-rose-500/50 bg-rose-500/10 p-3 text-xs text-rose-400"
               >
-                <AlertTriangle size={15} className="shrink-0" />
+                <AlertTriangle size={16} className="shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </motion.div>
             )}
 
             <div className="space-y-1.5">
               <label htmlFor="admin_username" className="block text-xs uppercase text-purple-200">
-                {mode === 'register' ? 'Admin Username or Email' : 'Username or Email'}
+                {mode === 'register' ? 'Admin Username' : 'Username or Email'}
               </label>
               <input
                 id="admin_username"
@@ -226,6 +225,9 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
                   disabled={isAuthorizing}
                   className="w-full rounded-lg border border-purple-900/60 bg-[#07040e] px-4 py-2.5 text-xs text-white placeholder-purple-400/40 transition-all focus:border-purple-400 focus:outline-none focus:shadow-[0_0_15px_rgba(147,51,234,0.3)] disabled:opacity-50"
                 />
+                <p className="text-[10px] text-purple-300/70 pt-1">
+                  * Note: New registrations require approval by the Head Administrator before login is granted.
+                </p>
               </div>
             )}
 
@@ -236,7 +238,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
                 className="w-full flex items-center justify-center gap-2 rounded-lg bg-purple-600 py-3 text-xs font-bold uppercase text-white hover:bg-purple-500 transition-all hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] disabled:opacity-40 cursor-pointer"
               >
                 {isAuthorizing ? (
-                  <span>AUTHENTICATING...</span>
+                  <span>PROCESSING...</span>
                 ) : lockoutTimer > 0 ? (
                   <span>LOCKED ({lockoutTimer}s)</span>
                 ) : mode === 'signin' ? (
@@ -246,7 +248,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
                   </>
                 ) : (
                   <>
-                    <span>REGISTER NEW ADMIN</span>
+                    <span>SUBMIT FOR APPROVAL</span>
                     <ArrowRight size={14} />
                   </>
                 )}
