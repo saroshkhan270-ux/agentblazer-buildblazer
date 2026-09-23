@@ -33,14 +33,34 @@ export interface WorkshopEvent {
   tagType: 'flagship' | 'contest' | 'symposium' | 'student-lab' | 'security' | 'developer-lab';
   title: string;
   description: string;
+  timeline?: string;
+  posterUrl?: string;
   tracks?: string[];
   sessionLeads?: string;
   guestSpeaker?: string;
   platform?: string;
   attendees?: string;
   location?: string;
+  venue?: string;
   photosCount?: number;
   gallery: GalleryPhoto[];
+}
+
+export interface AdminPermissions {
+  membershipApproval: boolean;
+  manageEvents: boolean;
+  manageLeadership: boolean;
+  manageCredentials?: boolean;
+}
+
+export interface RegisteredAdmin {
+  username: string;
+  password?: string;
+  roleTitle?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  registeredAt: string;
+  approvedAt?: string;
+  permissions?: AdminPermissions;
 }
 
 export interface MembershipApplication {
@@ -55,3 +75,38 @@ export interface MembershipApplication {
   linkedinProfile?: string;
   experienceStatement: string;
 }
+
+export interface MailSettings {
+  clubEmail: string;
+  senderName: string;
+  delayHours: number;
+  acceptSubject: string;
+  acceptBody: string;
+  shortlistSubject: string;
+  shortlistBody: string;
+  updatedAt?: string;
+}
+
+export interface ScheduledEmail {
+  id: string;
+  applicationId: string;
+  applicantName: string;
+  recipientEmail: string;
+  type: 'accept' | 'shortlist';
+  subject: string;
+  body: string;
+  senderEmail: string;
+  scheduledFor: string; // ISO timestamp
+  status: 'scheduled' | 'sent';
+  createdAt: string;
+}
+
+export interface ContactDetail {
+  id: string;
+  title: string;
+  type: 'email' | 'phone' | 'location' | 'social' | 'office';
+  value: string;
+  description?: string;
+  isPrimary?: boolean;
+}
+

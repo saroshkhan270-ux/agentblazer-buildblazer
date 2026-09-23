@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { cleanSecureInput, hasSQLInjectionThreat, stripControlCharacters } from '../utils/sanitize';
+import { AdminPermissions, RegisteredAdmin } from '../types';
 
 export interface AuthResult {
   success: boolean;
@@ -9,13 +10,12 @@ export interface AuthResult {
   message?: string;
 }
 
-export interface RegisteredAdmin {
-  username: string;
-  password?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  registeredAt: string;
-  approvedAt?: string;
-}
+export const DEFAULT_ADMIN_PERMISSIONS: AdminPermissions = {
+  membershipApproval: true,
+  manageEvents: true,
+  manageLeadership: true,
+  manageCredentials: true,
+};
 
 const MAX_LOGIN_ATTEMPTS = 3;
 const LOCKOUT_DURATION_SECONDS = 30;
@@ -30,6 +30,7 @@ export function useAdminAuth() {
   const [lockoutTimer, setLockoutTimer] = useState<number>(0);
   const [adminRequests, setAdminRequests] = useState<RegisteredAdmin[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState<boolean>(false);
+  const [currentPermissions, setCurrentPermissions] = useState<AdminPermissions>(DEFAULT_ADMIN_PERMISSIONS);
 
   // Lockout countdown timer
   useEffect(() => {
@@ -56,12 +57,23 @@ export function useAdminAuth() {
           setSession(session);
           setUser(session.user);
           setIsAuthenticated(true);
+          setCurrentPermissions(DEFAULT_ADMIN_PERMISSIONS);
         } else {
           try {
             const savedUser = sessionStorage.getItem('agentblazer_admin_active_user');
             if (savedUser) {
               setUser({ id: 'admin_active', email: `${savedUser}@agentblazer.sjec.ac.in` } as User);
               setIsAuthenticated(true);
+              const savedPerms = sessionStorage.getItem('agentblazer_admin_permissions');
+              if (savedPerms) {
+                try {
+                  setCurrentPermissions(JSON.parse(savedPerms));
+                } catch {
+                  setCurrentPermissions(DEFAULT_ADMIN_PERMISSIONS);
+                }
+              } else {
+                setCurrentPermissions(DEFAULT_ADMIN_PERMISSIONS);
+              }
             }
           } catch {
             // ignore
@@ -270,8 +282,10 @@ export function useAdminAuth() {
           setUser(authUser);
           setIsAuthenticated(true);
           setFailedAttempts(0);
+          setCurrentPermissions(DEFAULT_ADMIN_PERMISSIONS);
           try {
             sessionStorage.setItem('agentblazer_admin_active_user', authVal.username || 'admin');
+            sessionStorage.setItem('agentblazer_admin_permissions', JSON.stringify(DEFAULT_ADMIN_PERMISSIONS));
           } catch {
             // ignore
           }
@@ -294,8 +308,10 @@ export function useAdminAuth() {
         setUser(authUser);
         setIsAuthenticated(true);
         setFailedAttempts(0);
+        setCurrentPermissions(DEFAULT_ADMIN_PERMISSIONS);
         try {
           sessionStorage.setItem('agentblazer_admin_active_user', 'admin');
+          sessionStorage.setItem('agentblazer_admin_permissions', JSON.stringify(DEFAULT_ADMIN_PERMISSIONS));
         } catch {
           // ignore
         }
@@ -320,7 +336,7 @@ export function useAdminAuth() {
 
         if (matched) {
           // CHECK APPROVAL STATUS
-          const status = matched.status || 'pending';
+          const status = matched.status || 'approved';
           if (status === 'pending') {
             const msg = 'Approval Pending: Your admin registration has not yet been approved by the Head Administrator.';
             setErrorMsg(msg);
@@ -338,11 +354,20 @@ export function useAdminAuth() {
             email: `${matched.username}@agentblazer.sjec.ac.in`,
           } as User;
 
+          const memberPerms: AdminPermissions = matched.permissions || {
+            membershipApproval: true,
+            manageEvents: true,
+            manageLeadership: true,
+            manageCredentials: false,
+          };
+
           setUser(authUser);
           setIsAuthenticated(true);
           setFailedAttempts(0);
+          setCurrentPermissions(memberPerms);
           try {
             sessionStorage.setItem('agentblazer_admin_active_user', matched.username);
+            sessionStorage.setItem('agentblazer_admin_permissions', JSON.stringify(memberPerms));
           } catch {
             // ignore
           }
@@ -365,8 +390,10 @@ export function useAdminAuth() {
         setUser(authData.user);
         setIsAuthenticated(true);
         setFailedAttempts(0);
+        setCurrentPermissions(DEFAULT_ADMIN_PERMISSIONS);
         try {
           sessionStorage.setItem('agentblazer_admin_active_user', authData.user.email || 'admin');
+          sessionStorage.setItem('agentblazer_admin_permissions', JSON.stringify(DEFAULT_ADMIN_PERMISSIONS));
         } catch {
           // ignore
         }
@@ -472,6 +499,137 @@ export function useAdminAuth() {
     }
   }, []);
 
+  // Create Member Credential directly with permissions
+  const createMemberCredential = useCallback(
+    async (
+      newUsername: string,
+      newPassword: string,
+      roleTitle: string,
+      permissions: AdminPermissions
+    ): Promise<AuthResult> => {
+      setErrorMsg(null);
+
+      if (hasSQLInjectionThreat(newUsername) || hasSQLInjectionThreat(newPassword)) {
+        const msg = 'Security Alert: Prohibited syntax detected in credentials.';
+        setErrorMsg(msg);
+        return { success: false, error: msg };
+      }
+
+      const cleanUser = cleanSecureInput(stripControlCharacters(newUsername), 50);
+      const cleanPass = stripControlCharacters(newPassword).slice(0, 150);
+
+      if (cleanUser.length < 3) {
+        const msg = 'Username must be at least 3 characters long.';
+        setErrorMsg(msg);
+        return { success: false, error: msg };
+      }
+
+      if (cleanPass.length < 6) {
+        const msg = 'Password must be at least 6 characters long.';
+        setErrorMsg(msg);
+        return { success: false, error: msg };
+      }
+
+      try {
+        const { data: existingContent } = await supabase
+          .from('club_content')
+          .select('value')
+          .eq('key', 'admin_users_list')
+          .maybeSingle();
+
+        let list: Array<RegisteredAdmin> = [];
+        if (Array.isArray(existingContent?.value)) {
+          list = existingContent.value as Array<RegisteredAdmin>;
+        }
+
+        if (list.some((u) => u.username.toLowerCase() === cleanUser.toLowerCase())) {
+          const msg = `Username "${cleanUser}" already exists. Please choose a different username.`;
+          setErrorMsg(msg);
+          return { success: false, error: msg };
+        }
+
+        const newAccount: RegisteredAdmin = {
+          username: cleanUser,
+          password: cleanPass,
+          roleTitle: roleTitle?.trim() || 'Club Member Lead',
+          status: 'approved',
+          registeredAt: new Date().toISOString(),
+          approvedAt: new Date().toISOString(),
+          permissions,
+        };
+
+        list.unshift(newAccount);
+
+        const { error: upsertErr } = await supabase.from('club_content').upsert(
+          {
+            key: 'admin_users_list',
+            value: list,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'key' }
+        );
+
+        if (upsertErr) throw upsertErr;
+
+        setAdminRequests(list);
+        return {
+          success: true,
+          message: `Created login credentials for "${cleanUser}" successfully.`,
+        };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Failed to create member credentials.';
+        setErrorMsg(msg);
+        return { success: false, error: msg };
+      }
+    },
+    []
+  );
+
+  // Update Member Credential (permissions, password, role title)
+  const updateMemberCredential = useCallback(
+    async (
+      targetUsername: string,
+      updates: Partial<RegisteredAdmin>
+    ): Promise<AuthResult> => {
+      try {
+        const { data } = await supabase
+          .from('club_content')
+          .select('value')
+          .eq('key', 'admin_users_list')
+          .maybeSingle();
+
+        let list: RegisteredAdmin[] = Array.isArray(data?.value) ? data.value : [];
+        list = list.map((u) => {
+          if (u.username.toLowerCase() === targetUsername.toLowerCase()) {
+            return {
+              ...u,
+              ...updates,
+              permissions: updates.permissions ? { ...u.permissions, ...updates.permissions } : u.permissions,
+            };
+          }
+          return u;
+        });
+
+        const { error } = await supabase.from('club_content').upsert(
+          {
+            key: 'admin_users_list',
+            value: list,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'key' }
+        );
+
+        if (error) throw error;
+        setAdminRequests(list);
+        return { success: true, message: `Updated credentials for "${targetUsername}".` };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Failed to update member credentials.';
+        return { success: false, error: msg };
+      }
+    },
+    []
+  );
+
   // Logout
   const logout = useCallback(async () => {
     try {
@@ -481,12 +639,14 @@ export function useAdminAuth() {
     } finally {
       try {
         sessionStorage.removeItem('agentblazer_admin_active_user');
+        sessionStorage.removeItem('agentblazer_admin_permissions');
       } catch {
         // ignore
       }
       setUser(null);
       setSession(null);
       setIsAuthenticated(false);
+      setCurrentPermissions(DEFAULT_ADMIN_PERMISSIONS);
     }
   }, []);
 
@@ -525,6 +685,7 @@ export function useAdminAuth() {
     isAuthenticated,
     isLoading,
     isMainAdmin,
+    currentPermissions,
     errorMsg,
     lockoutTimer,
     adminRequests,
@@ -533,6 +694,8 @@ export function useAdminAuth() {
     approveAdmin,
     rejectAdmin,
     deleteAdmin,
+    createMemberCredential,
+    updateMemberCredential,
     login,
     registerAdmin,
     logout,

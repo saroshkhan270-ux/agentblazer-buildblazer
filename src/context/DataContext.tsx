@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase, ApplicationRecord, ContactRecord } from '../lib/supabase';
-import { WorkshopEvent, LeadershipMember } from '../types';
+import { WorkshopEvent, LeadershipMember, MailSettings, ScheduledEmail, ContactDetail } from '../types';
 import {
   WORKSHOP_EVENTS as defaultEvents,
   STUDENT_OFFICERS,
@@ -8,6 +8,82 @@ import {
   CORE_WORKING_COMMITTEE,
   HONORED_GUESTS,
 } from '../data';
+
+export const DEFAULT_MAIL_SETTINGS: MailSettings = {
+  clubEmail: 'agentblazer@sjec.ac.in',
+  senderName: 'AgentBlazer Club Executive Council',
+  delayHours: 24,
+  acceptSubject: '🎉 Congratulations! Your AgentBlazer Club Application is Accepted',
+  acceptBody: `Dear {name},
+
+We are thrilled to inform you that your application for the AgentBlazer Club ({track}) has been officially ACCEPTED!
+
+Your credentials and orientation summary:
+- Member Name: {name}
+- USN: {usn}
+- Track / Division: {track}
+- Official Club Contact: {club_email}
+
+Our executive team will reach out with the onboarding schedule and access to our technical repository. Welcome aboard!
+
+Warm regards,
+AgentBlazer Club Executive Council
+Department of Computer Science & Engineering
+St Joseph Engineering College, Mangaluru`,
+  shortlistSubject: '📋 Update: You Have Been Shortlisted for AgentBlazer Club Interview',
+  shortlistBody: `Dear {name},
+
+Thank you for applying to the AgentBlazer Club at SJEC CSE.
+
+We are pleased to inform you that your profile has been SHORTLISTED for the next round of technical interviews and cohort discussions.
+
+Application Details:
+- Candidate Name: {name}
+- USN: {usn}
+- Selected Track: {track}
+- Inquiries: {club_email}
+
+Please keep an eye on your inbox for interview slots and lab round details.
+
+Best wishes,
+AgentBlazer Technical Council
+SJEC CSE Department`,
+};
+
+export const DEFAULT_CONTACT_DETAILS: ContactDetail[] = [
+  {
+    id: 'contact-dept-email',
+    title: 'Official Club Inquiries',
+    type: 'email',
+    value: 'agentblazer@sjec.ac.in',
+    description: 'Direct email channel for membership and event communications.',
+    isPrimary: true,
+  },
+  {
+    id: 'contact-campus-location',
+    title: 'Department Secretariat & Lab',
+    type: 'location',
+    value: 'Department of Computer Science & Engineering, SJEC Campus, Vamanjoor, Mangaluru - 575028',
+    description: 'CSE Systems Lab 3 & Academic Block 2.',
+    isPrimary: true,
+  },
+  {
+    id: 'contact-faculty-coord',
+    title: 'Faculty Advisory Desk',
+    type: 'office',
+    value: 'Ms. Nisha Roche & Mr. Keith Fernandes (Assistant Professors, CSE)',
+    description: 'Office hours: Mon-Fri, 9:00 AM - 4:30 PM.',
+    isPrimary: false,
+  },
+  {
+    id: 'contact-student-council',
+    title: 'Salesforce Trailblazer Community',
+    type: 'social',
+    value: 'https://trailhead.salesforce.com/agentblazer',
+    description: 'Salesforce Trailblazer Community & Student Forum.',
+    isPrimary: false,
+  },
+];
 
 const initialLeadership: LeadershipMember[] = [
   ...STUDENT_OFFICERS,
@@ -23,6 +99,26 @@ interface DataContextType {
   inquiries: ContactRecord[];
   isSupabaseConnected: boolean;
   isLoadingApplications: boolean;
+
+  // Mail settings & queue
+  mailSettings: MailSettings;
+  scheduledEmails: ScheduledEmail[];
+  updateMailSettings: (settings: Partial<MailSettings>) => void;
+  scheduleApplicationEmail: (
+    applicationId: string,
+    applicantName: string,
+    recipientEmail: string,
+    type: 'accept' | 'shortlist',
+    customVars?: { usn?: string; track?: string }
+  ) => void;
+  cancelScheduledEmail: (applicationId: string) => void;
+  dispatchScheduledEmailNow: (emailId: string) => void;
+
+  // Contact details
+  contactDetails: ContactDetail[];
+  addContactDetail: (contact: ContactDetail) => void;
+  updateContactDetail: (id: string, updated: Partial<ContactDetail>) => void;
+  deleteContactDetail: (id: string) => void;
 
   // Applications
   addApplication: (app: Omit<ApplicationRecord, 'id' | 'created_at'>) => Promise<{ success: boolean; id?: string }>;
@@ -52,6 +148,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [inquiries, setInquiries] = useState<ContactRecord[]>([]);
   const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean>(true);
   const [isLoadingApplications, setIsLoadingApplications] = useState<boolean>(false);
+  const [mailSettings, setMailSettings] = useState<MailSettings>(DEFAULT_MAIL_SETTINGS);
+  const [scheduledEmails, setScheduledEmails] = useState<ScheduledEmail[]>([]);
+  const [contactDetails, setContactDetails] = useState<ContactDetail[]>(DEFAULT_CONTACT_DETAILS);
 
   // Sync CMS collections to Supabase club_content
   const syncContentToSupabase = useCallback(async (key: string, value: unknown) => {
@@ -121,6 +220,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data.forEach((row: { key: string; value: unknown }) => {
           if (row.key === 'events' && Array.isArray(row.value)) setEvents(row.value as WorkshopEvent[]);
           if (row.key === 'leadership' && Array.isArray(row.value)) setLeadership(row.value as LeadershipMember[]);
+          if (row.key === 'mail_settings' && row.value && typeof row.value === 'object') {
+            setMailSettings({ ...DEFAULT_MAIL_SETTINGS, ...(row.value as MailSettings) });
+          }
+          if (row.key === 'scheduled_emails' && Array.isArray(row.value)) {
+            setScheduledEmails(row.value as ScheduledEmail[]);
+          }
+          if (row.key === 'contact_details' && Array.isArray(row.value)) {
+            setContactDetails(row.value as ContactDetail[]);
+          }
         });
       }
     } catch (err) {
@@ -287,6 +395,131 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  // Mail settings methods
+  const updateMailSettings = useCallback(
+    (settings: Partial<MailSettings>) => {
+      setMailSettings((prev) => {
+        const next = { ...prev, ...settings, updatedAt: new Date().toISOString() };
+        syncContentToSupabase('mail_settings', next);
+        return next;
+      });
+    },
+    [syncContentToSupabase]
+  );
+
+  const scheduleApplicationEmail = useCallback(
+    (
+      applicationId: string,
+      applicantName: string,
+      recipientEmail: string,
+      type: 'accept' | 'shortlist',
+      customVars?: { usn?: string; track?: string }
+    ) => {
+      setScheduledEmails((prev) => {
+        const filtered = prev.filter((e) => e.applicationId !== applicationId);
+        const delayMs = (mailSettings.delayHours || 24) * 3600 * 1000;
+        const scheduledFor = new Date(Date.now() + delayMs).toISOString();
+
+        const rawSubject =
+          type === 'accept' ? mailSettings.acceptSubject : mailSettings.shortlistSubject;
+        const rawBody =
+          type === 'accept' ? mailSettings.acceptBody : mailSettings.shortlistBody;
+
+        const usn = customVars?.usn || 'N/A';
+        const track = customVars?.track || 'Agentic AI Systems';
+
+        const subject = rawSubject
+          .replace(/{name}/g, applicantName)
+          .replace(/{usn}/g, usn)
+          .replace(/{track}/g, track)
+          .replace(/{club_email}/g, mailSettings.clubEmail);
+
+        const body = rawBody
+          .replace(/{name}/g, applicantName)
+          .replace(/{usn}/g, usn)
+          .replace(/{track}/g, track)
+          .replace(/{club_email}/g, mailSettings.clubEmail);
+
+        const newEmail: ScheduledEmail = {
+          id: `email-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          applicationId,
+          applicantName,
+          recipientEmail,
+          type,
+          subject,
+          body,
+          senderEmail: mailSettings.clubEmail,
+          scheduledFor,
+          status: 'scheduled',
+          createdAt: new Date().toISOString(),
+        };
+
+        const next = [newEmail, ...filtered];
+        syncContentToSupabase('scheduled_emails', next);
+        return next;
+      });
+    },
+    [mailSettings, syncContentToSupabase]
+  );
+
+  const cancelScheduledEmail = useCallback(
+    (applicationId: string) => {
+      setScheduledEmails((prev) => {
+        const next = prev.filter((e) => e.applicationId !== applicationId);
+        syncContentToSupabase('scheduled_emails', next);
+        return next;
+      });
+    },
+    [syncContentToSupabase]
+  );
+
+  const dispatchScheduledEmailNow = useCallback(
+    (emailId: string) => {
+      setScheduledEmails((prev) => {
+        const next = prev.map((e) =>
+          e.id === emailId ? { ...e, status: 'sent' as const, scheduledFor: new Date().toISOString() } : e
+        );
+        syncContentToSupabase('scheduled_emails', next);
+        return next;
+      });
+    },
+    [syncContentToSupabase]
+  );
+
+  // Contact details methods
+  const addContactDetail = useCallback(
+    (contact: ContactDetail) => {
+      setContactDetails((prev) => {
+        const next = [...prev, contact];
+        syncContentToSupabase('contact_details', next);
+        return next;
+      });
+    },
+    [syncContentToSupabase]
+  );
+
+  const updateContactDetail = useCallback(
+    (id: string, updated: Partial<ContactDetail>) => {
+      setContactDetails((prev) => {
+        const next = prev.map((c) => (c.id === id ? { ...c, ...updated } : c));
+        syncContentToSupabase('contact_details', next);
+        return next;
+      });
+    },
+    [syncContentToSupabase]
+  );
+
+  const deleteContactDetail = useCallback(
+    (id: string) => {
+      setContactDetails((prev) => {
+        const next = prev.filter((c) => c.id !== id);
+        syncContentToSupabase('contact_details', next);
+        return next;
+      });
+    },
+    [syncContentToSupabase]
+  );
+
   return (
     <DataContext.Provider
       value={{
@@ -296,6 +529,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         inquiries,
         isSupabaseConnected,
         isLoadingApplications,
+        mailSettings,
+        scheduledEmails,
+        updateMailSettings,
+        scheduleApplicationEmail,
+        cancelScheduledEmail,
+        dispatchScheduledEmailNow,
+        contactDetails,
+        addContactDetail,
+        updateContactDetail,
+        deleteContactDetail,
         addApplication,
         deleteApplication,
         updateApplicationStatus,

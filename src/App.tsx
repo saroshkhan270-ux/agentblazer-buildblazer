@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ActiveTab, ThemeMode } from './types';
+import { ActiveTab, LeadershipMember, ThemeMode } from './types';
 import { IntroScreen } from './components/IntroScreen';
 import { Navbar } from './components/Navbar';
 import { HomeSection } from './components/HomeSection';
@@ -15,6 +15,7 @@ import { JoinSection } from './components/JoinSection';
 import { Footer } from './components/Footer';
 import { CharterModal } from './components/CharterModal';
 import { SourceCodeModal } from './components/SourceCodeModal';
+import { CommandPaletteModal } from './components/CommandPaletteModal';
 import { CustomCursor } from './components/CustomCursor';
 import { AnimatePresence, motion } from 'motion/react';
 import { DataProvider } from './context/DataContext';
@@ -39,11 +40,12 @@ function MainApp() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [isCharterOpen, setIsCharterOpen] = useState<boolean>(false);
   const [isSourceCodeOpen, setIsSourceCodeOpen] = useState<boolean>(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+  const [selectedMember, setSelectedMember] = useState<LeadershipMember | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(checkIsAdminRoute);
 
   const { isAuthenticated, refreshAuth, logout: handleAdminLogout } = useAdminAuth();
 
-  // Listen for hash changes to support #admin
   useEffect(() => {
     const handleHashChange = () => {
       setIsAdmin(checkIsAdminRoute());
@@ -52,12 +54,36 @@ function MainApp() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Scroll to top when switching tabs
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeTab]);
 
-  // Background styling based on theme
+  // Global search shortcut listener (Ctrl+K, Cmd+K, or '/')
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Toggle on Ctrl+K or Cmd+K
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+        return;
+      }
+
+      // Open on '/' if not inside an input or editable field
+      if (e.key === '/' && !isCommandPaletteOpen) {
+        const activeEl = document.activeElement;
+        const tag = activeEl?.tagName?.toLowerCase();
+        const isEditable = (activeEl as HTMLElement)?.isContentEditable;
+        if (tag !== 'input' && tag !== 'textarea' && !isEditable) {
+          e.preventDefault();
+          setIsCommandPaletteOpen(true);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isCommandPaletteOpen]);
+
   const getThemeWrapperClass = () => {
     switch (theme) {
       case 'inferno':
@@ -70,7 +96,6 @@ function MainApp() {
     }
   };
 
-  // ADMIN MODE ROUTING
   if (isAdmin) {
     return (
       <div className="min-h-screen bg-[#07040e] text-white font-mono">
@@ -125,6 +150,7 @@ function MainApp() {
             setTheme={setTheme}
             onOpenSourceCode={() => setIsSourceCodeOpen(true)}
             onReplayIntro={() => setShowIntro(true)}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           />
 
           <main className="flex-1">
@@ -153,7 +179,11 @@ function MainApp() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <AboutSection theme={theme} />
+                  <AboutSection
+                    theme={theme}
+                    selectedMember={selectedMember}
+                    onClearSelectedMember={() => setSelectedMember(null)}
+                  />
                 </motion.div>
               )}
 
@@ -205,6 +235,20 @@ function MainApp() {
               onClose={() => setIsSourceCodeOpen(false)}
             />
           )}
+
+          <CommandPaletteModal
+            isOpen={isCommandPaletteOpen}
+            onClose={() => setIsCommandPaletteOpen(false)}
+            setActiveTab={setActiveTab}
+            setTheme={setTheme}
+            currentTheme={theme}
+            onSelectMember={(member) => {
+              setSelectedMember(member);
+              setActiveTab('about');
+            }}
+            onOpenCharter={() => setIsCharterOpen(true)}
+            onOpenSourceCode={() => setIsSourceCodeOpen(true)}
+          />
         </div>
       )}
     </div>

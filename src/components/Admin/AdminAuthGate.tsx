@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Terminal, AlertTriangle, UserPlus, LogIn, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Terminal, AlertTriangle } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
 interface AdminAuthGateProps {
@@ -9,46 +9,21 @@ interface AdminAuthGateProps {
 }
 
 export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, onCancel }) => {
-  const { login, registerAdmin, lockoutTimer } = useAdminAuth();
-  const [mode, setMode] = useState<'signin' | 'register'>('signin');
+  const { login, lockoutTimer } = useAdminAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
   const [isGranted, setIsGranted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
 
     setErrorMsg(null);
-    setSuccessMsg(null);
 
-    if (mode === 'register') {
-      if (password !== confirmPassword) {
-        setErrorMsg('Passwords do not match. Please verify your password confirmation.');
-        return;
-      }
-
-      setIsAuthorizing(true);
-      const res = await registerAdmin(username, password);
-      setIsAuthorizing(false);
-
-      if (res.success) {
-        setSuccessMsg(res.message || 'Registration submitted! Awaiting Head Admin approval.');
-        setMode('signin');
-        setPassword('');
-        setConfirmPassword('');
-      } else {
-        setErrorMsg(res.error || 'Registration failed.');
-      }
-      return;
-    }
-
-    // Sign in mode
+    // Sign in
     setIsAuthorizing(true);
     const res = await login(username, password);
     setIsAuthorizing(false);
@@ -109,53 +84,6 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
               </p>
             </div>
 
-            {/* Mode Switcher */}
-            <div className="flex rounded-lg border border-purple-900/60 bg-[#07040e] p-1 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('signin');
-                  setErrorMsg(null);
-                  setSuccessMsg(null);
-                }}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded py-2 transition-all cursor-pointer ${
-                  mode === 'signin'
-                    ? 'bg-purple-600 font-bold text-white shadow-[0_0_15px_rgba(147,51,234,0.4)]'
-                    : 'text-purple-300 hover:text-white'
-                }`}
-              >
-                <LogIn size={13} />
-                <span>SIGN IN</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('register');
-                  setErrorMsg(null);
-                  setSuccessMsg(null);
-                }}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded py-2 transition-all cursor-pointer ${
-                  mode === 'register'
-                    ? 'bg-purple-600 font-bold text-white shadow-[0_0_15px_rgba(147,51,234,0.4)]'
-                    : 'text-purple-300 hover:text-white'
-                }`}
-              >
-                <UserPlus size={13} />
-                <span>REGISTER ADMIN</span>
-              </button>
-            </div>
-
-            {successMsg && (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-start gap-2 rounded border border-emerald-500/50 bg-emerald-500/10 p-3 text-xs text-emerald-400"
-              >
-                <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
-                <span>{successMsg}</span>
-              </motion.div>
-            )}
-
             {errorMsg && (
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
@@ -169,14 +97,14 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
 
             <div className="space-y-1.5">
               <label htmlFor="admin_username" className="block text-xs uppercase text-purple-200">
-                {mode === 'register' ? 'Admin Username' : 'Username or Email'}
+                Username or Email
               </label>
               <input
                 id="admin_username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder={mode === 'register' ? 'Choose username (e.g. lead_alex)' : 'Enter username or email'}
+                placeholder="Enter username or email"
                 required
                 disabled={isAuthorizing || lockoutTimer > 0}
                 autoFocus
@@ -186,7 +114,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
 
             <div className="space-y-1.5">
               <label htmlFor="admin_password" className="block text-xs uppercase text-purple-200">
-                {mode === 'register' ? 'Create Password' : 'Password'}
+                Password
               </label>
               <div className="relative">
                 <input
@@ -194,7 +122,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={mode === 'register' ? 'Min 6 characters' : 'Enter password'}
+                  placeholder="Enter password"
                   required
                   disabled={isAuthorizing || lockoutTimer > 0}
                   className="w-full rounded-lg border border-purple-900/60 bg-[#07040e] px-4 py-2.5 pr-11 text-xs text-white placeholder-purple-400/40 transition-all focus:border-purple-400 focus:outline-none focus:shadow-[0_0_15px_rgba(147,51,234,0.3)] disabled:opacity-50"
@@ -210,27 +138,6 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
               </div>
             </div>
 
-            {mode === 'register' && (
-              <div className="space-y-1.5">
-                <label htmlFor="admin_confirm_password" className="block text-xs uppercase text-purple-200">
-                  Confirm Password
-                </label>
-                <input
-                  id="admin_confirm_password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter password"
-                  required
-                  disabled={isAuthorizing}
-                  className="w-full rounded-lg border border-purple-900/60 bg-[#07040e] px-4 py-2.5 text-xs text-white placeholder-purple-400/40 transition-all focus:border-purple-400 focus:outline-none focus:shadow-[0_0_15px_rgba(147,51,234,0.3)] disabled:opacity-50"
-                />
-                <p className="text-[10px] text-purple-300/70 pt-1">
-                  * Note: New registrations require approval by the Head Administrator before login is granted.
-                </p>
-              </div>
-            )}
-
             <div className="space-y-3 pt-2">
               <button
                 type="submit"
@@ -241,14 +148,9 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
                   <span>PROCESSING...</span>
                 ) : lockoutTimer > 0 ? (
                   <span>LOCKED ({lockoutTimer}s)</span>
-                ) : mode === 'signin' ? (
-                  <>
-                    <span>AUTHENTICATE &amp; ENTER</span>
-                    <ArrowRight size={14} />
-                  </>
                 ) : (
                   <>
-                    <span>SUBMIT FOR APPROVAL</span>
+                    <span>AUTHENTICATE &amp; ENTER</span>
                     <ArrowRight size={14} />
                   </>
                 )}

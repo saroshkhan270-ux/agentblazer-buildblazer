@@ -9,7 +9,7 @@ export const HONORED_GUESTS: LeadershipMember[] = [
     category: 'guest',
     subCategoryTitle: 'Keynote Speaker',
     initials: 'SR',
-    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/santosh-rebello.jpg',
     badge: 'KEYNOTE SPEAKER',
     tag: 'Guest of Honor'
   },
@@ -21,7 +21,7 @@ export const HONORED_GUESTS: LeadershipMember[] = [
     category: 'guest',
     subCategoryTitle: 'Alumni Guide',
     initials: 'SP',
-    photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/stephen-pinto.jpg',
     badge: 'ALUMNI GUIDE',
     tag: 'Technical Mentor'
   },
@@ -33,7 +33,7 @@ export const HONORED_GUESTS: LeadershipMember[] = [
     category: 'guest',
     subCategoryTitle: 'Patron',
     initials: 'RD',
-    photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/rio-dsouza.jpg',
     badge: 'PATRON',
     tag: 'Principal, SJEC'
   },
@@ -45,7 +45,7 @@ export const HONORED_GUESTS: LeadershipMember[] = [
     category: 'guest',
     subCategoryTitle: 'Department Head',
     initials: 'MD',
-    photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/melwyn-dsouza.jpg',
     badge: 'DEPARTMENT HEAD',
     tag: 'HOD, CSE'
   }
@@ -59,7 +59,7 @@ export const FACULTY_COUNCIL: LeadershipMember[] = [
     departmentRole: 'Faculty Coordinator',
     category: 'faculty',
     initials: 'NR',
-    photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/nisha-roche.jpg',
     badge: 'FACULTY COORDINATOR',
     tag: 'CSE Department'
   },
@@ -165,7 +165,7 @@ export const CORE_WORKING_COMMITTEE: LeadershipMember[] = [
     departmentRole: 'Core Working Committee • AI Research',
     category: 'working-committee',
     initials: 'PR',
-    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80',
+    photoUrl: '/people/prajwal-cordero.jpg',
     description: 'Autonomous agents research, fine-tuning evaluations, and model benchmarking.',
     college: 'SJEC CSE'
   },

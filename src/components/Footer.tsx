@@ -44,7 +44,7 @@ export const Footer: React.FC<FooterProps> = ({
                 }`}
               >
                 <img
-                  src="/assets/agentblazer_logo.jpg"
+                  src="/assets/logo.jpeg"
                   alt="AgentBlazer"
                   className="w-full h-full object-contain"
                 />

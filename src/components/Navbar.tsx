@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActiveTab, ThemeMode } from '../types';
-import { Home, Users, Calendar, UserPlus, Sparkles, Flame, Snowflake, Cpu } from 'lucide-react';
+import { Home, Users, Calendar, UserPlus, Sparkles, Flame, Snowflake, Search } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -9,6 +9,7 @@ interface NavbarProps {
   setTheme: (theme: ThemeMode) => void;
   onOpenSourceCode: () => void;
   onReplayIntro: () => void;
+  onOpenCommandPalette: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setTheme,
   onOpenSourceCode,
   onReplayIntro,
+  onOpenCommandPalette,
 }) => {
   const isFrost = theme === 'frost';
   const isInferno = theme === 'inferno';
@@ -40,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           : 'bg-[#07050e]/90 border-b-2 border-cyan-500/70 shadow-[0_4px_35px_rgba(6,182,212,0.5),0_10px_60px_rgba(168,85,247,0.35)] text-white'
       }`}
     >
-      {/* Radiant bottom laser glow bar */}
+      {/* Laser glow bar */}
       <div
         className={`absolute bottom-0 left-0 right-0 h-[2px] pointer-events-none ${
           isFrost
@@ -52,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
-        {/* Left: Brand Identity with Radiant Crest */}
+        {/* Left: Brand Identity with Crest */}
         <div 
           onClick={() => setActiveTab('home')}
           className="flex items-center gap-3 cursor-pointer group select-none"
@@ -68,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <img
-                src="/assets/agentblazer_logo.jpg"
+                src="/assets/logo.jpeg"
                 alt="AgentBlazer Logo"
                 className="w-full h-full object-contain"
               />
@@ -120,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center: Glowing Navigation Tabs (Full Glowing Cyber Capsule) */}
+        {/* Center: Glowing Navigation Tabs */}
         <nav
           className={`hidden md:flex items-center p-1.5 rounded-full border-2 transition-all duration-300 ${
             isFrost
@@ -158,9 +160,37 @@ export const Navbar: React.FC<NavbarProps> = ({
           })}
         </nav>
 
-        {/* Right: Theme Switcher & Actions with Glow */}
+        {/* Right: Quick Search + Theme Switcher */}
         <div className="flex items-center gap-2.5">
-          {/* Theme Switcher Group with Neon Outline */}
+          {/* Quick Search Button */}
+          <button
+            onClick={onOpenCommandPalette}
+            aria-label="Search club resources"
+            title="Search club resources (Ctrl+K)"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-mono transition-all cursor-pointer shadow-md ${
+              isFrost
+                ? 'border-sky-300 bg-sky-50/90 text-sky-800 hover:bg-sky-100 hover:border-sky-400 hover:text-sky-950 shadow-sky-100'
+                : isInferno
+                ? 'border-orange-500/50 bg-orange-950/40 text-amber-300 hover:bg-orange-950/70 hover:border-orange-400 hover:text-white shadow-orange-950/30'
+                : 'border-cyan-400/50 bg-black/40 text-cyan-300 hover:bg-black/70 hover:border-cyan-300 hover:text-white shadow-cyan-950/40'
+            }`}
+          >
+            <Search className={`w-3.5 h-3.5 ${isFrost ? 'text-sky-600' : isInferno ? 'text-orange-400' : 'text-cyan-400'}`} />
+            <span className="hidden sm:inline">Search...</span>
+            <kbd
+              className={`hidden lg:inline-block px-1.5 py-0.5 text-[9px] rounded font-mono ${
+                isFrost
+                  ? 'bg-sky-100 text-sky-700 border border-sky-200'
+                  : isInferno
+                  ? 'bg-orange-900/40 text-amber-200 border border-orange-800/40'
+                  : 'bg-white/15 text-purple-200 border border-purple-500/20'
+              }`}
+            >
+              Ctrl+K
+            </kbd>
+          </button>
+
+          {/* Theme Switcher */}
           <div
             id="theme-selector-group"
             className={`flex items-center p-1 rounded-full border-2 text-xs font-semibold transition-all ${
@@ -174,7 +204,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="theme-btn-violet"
               onClick={() => setTheme('violet')}
-              title="Violet Theme (Original AI Aura)"
+              title="Violet Theme"
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                 theme === 'violet'
                   ? 'bg-purple-600 text-white shadow-[0_0_15px_#a855f7]'
@@ -188,7 +218,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="theme-btn-inferno"
               onClick={() => setTheme('inferno')}
-              title="Inferno Theme (Fiery Ember)"
+              title="Inferno Theme"
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                 theme === 'inferno'
                   ? 'bg-orange-600 text-white shadow-[0_0_15px_#f97316]'
@@ -202,7 +232,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="theme-btn-frost"
               onClick={() => setTheme('frost')}
-              title="Frost Theme (Clean Ice Light Mode)"
+              title="Frost Theme"
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                 theme === 'frost'
                   ? 'bg-sky-600 text-white shadow-[0_0_15px_#0ea5e9]'
@@ -214,7 +244,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* Replay Intro Button with Glow */}
+          {/* Replay Intro Button */}
           <button
             onClick={onReplayIntro}
             title="Replay Phoenix Intro Screen"

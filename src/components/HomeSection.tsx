@@ -1,7 +1,6 @@
 import React from 'react';
 import { ActiveTab, ThemeMode } from '../types';
-import { PhoenixHero } from './PhoenixHero';
-import { ArrowRight, BookOpen, Sparkles, Award, Users2, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BookOpen, ShieldCheck } from 'lucide-react';
 
 interface HomeSectionProps {
   theme: ThemeMode;
@@ -39,7 +38,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
           {/* Left Hero Content */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Top Collegiate Initiative Chip */}
+            {/* Top Student Collective Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide border transition-colors shadow-sm select-none backdrop-blur-md">
               <span
                 className={`w-2 h-2 rounded-full animate-pulse ${
@@ -55,7 +54,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                     : 'text-purple-200'
                 }
               >
-                Collegiate AI Initiative • St Joseph Engineering College
+                Student Technology Collective • St Joseph Engineering College
               </span>
             </div>
 
@@ -77,7 +76,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                     : 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 drop-shadow-[0_0_25px_rgba(168,85,247,0.45)]'
                 }`}
               >
-                & Agentic AI Systems
+                & Agentic Frameworks
               </div>
             </div>
 
@@ -95,8 +94,8 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   isFrost ? 'text-slate-600' : isInferno ? 'text-amber-200/80' : 'text-purple-200/80'
                 }`}
               >
-                A dedicated student-led laboratory shaping tomorrow's software engineers through autonomous agent
-                architectures, open-source AI tooling, collaborative workshops, and premier Salesforce Trailblazer
+                A dedicated student-led initiative shaping software engineers through autonomous agent
+                architectures, open-source engineering tooling, collaborative workshops, and premier Salesforce
                 community synergy.
               </p>
             </div>
@@ -135,7 +134,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
               </button>
             </div>
 
-            {/* Stats Row matching video */}
+            {/* Stats Row */}
             <div
               className={`pt-8 border-t grid grid-cols-1 sm:grid-cols-3 gap-6 ${
                 isFrost
@@ -228,15 +227,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   : 'bg-gradient-to-b from-[#140b22]/90 to-[#07040d]/95 border-purple-800/50 shadow-2xl shadow-purple-950/70'
               }`}
             >
-              {/* Authentic AgentBlazer Club Hexagon Emblem from uploaded image */}
+              {/* Authentic AgentBlazer Club Hexagon Emblem */}
               <div className="relative w-full h-[80%] flex items-center justify-center overflow-hidden rounded-2xl">
                 <img
-                  src="/assets/agentblazer_logo.jpg"
+                  src="/assets/logo.jpeg"
                   alt="AgentBlazer Club Hexagonal Crest"
                   className="w-full h-full object-contain filter drop-shadow-[0_0_35px_rgba(168,85,247,0.45)] group-hover:scale-105 transition-transform duration-500"
                 />
 
-                {/* Cyber glowing scanlines effect */}
+                {/* Subtle cyber scanline */}
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/5 to-transparent pointer-events-none" />
               </div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ThemeMode, WorkshopEvent } from '../types';
 import { WORKSHOP_EVENTS } from '../data';
+import { useData } from '../context/DataContext';
 import { GalleryModal } from './GalleryModal';
 import { Calendar, Users, MapPin, Eye, Sparkles, Trophy, Shield, Laptop, Terminal, ExternalLink } from 'lucide-react';
 
@@ -9,11 +10,13 @@ interface EventsSectionProps {
 }
 
 export const EventsSection: React.FC<EventsSectionProps> = ({ theme }) => {
+  const { events } = useData();
   const isFrost = theme === 'frost';
   const isInferno = theme === 'inferno';
 
   // Selected event for gallery view
   const [activeGalleryEvent, setActiveGalleryEvent] = useState<WorkshopEvent | null>(null);
+  const displayEvents = events && events.length > 0 ? events : WORKSHOP_EVENTS;
 
   const getTagBadgeStyle = (type: WorkshopEvent['tagType']) => {
     switch (type) {
@@ -81,13 +84,30 @@ export const EventsSection: React.FC<EventsSectionProps> = ({ theme }) => {
 
         {/* 6 Event Cards Grid matching video layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {WORKSHOP_EVENTS.map((event) => {
+          {displayEvents.map((event) => {
             const isSelected = activeGalleryEvent?.id === event.id;
+            const eventWithGallery: WorkshopEvent = {
+              ...event,
+              gallery:
+                event.gallery && event.gallery.length > 0
+                  ? event.gallery
+                  : event.posterUrl
+                  ? [
+                      {
+                        id: 'poster-' + event.id,
+                        url: event.posterUrl,
+                        title: event.title,
+                        caption: 'Official Event Poster',
+                        tag: 'Poster',
+                      },
+                    ]
+                  : [],
+            };
             return (
               <div
                 key={event.id}
                 id={`event-card-${event.id}`}
-                onClick={() => setActiveGalleryEvent(event)}
+                onClick={() => setActiveGalleryEvent(eventWithGallery)}
                 className={`group p-6 rounded-3xl border transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden select-none ${
                   isSelected
                     ? isFrost
