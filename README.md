@@ -91,6 +91,9 @@ The leadership and mentorship popup system provides a clean, responsive modal vi
 
 3. Open [http://localhost:3000](http://localhost:3000) (or the port indicated in terminal) in your browser.
 
+4. admin login:
+   username🏸:admin
+   password:agentblazer@sjec2026
 ---
 
 ## 📦 Production Build
