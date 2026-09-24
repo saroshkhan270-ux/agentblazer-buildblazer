@@ -174,7 +174,7 @@ https://agentblazer-buildblazer-kh4p6qjwt-sarosh-k.vercel.app/
 
 ### Admin Panel
 
-https://agentblazer-buildblazer-kh4p6qjwt-sarosh-k.vercel.app/admin
+https://agentblazer-buildblazer-kh4p6qjwt-sarosh-k.vercel.app#admin
 
 ### GitHub Repository
 
@@ -187,7 +187,7 @@ https://github.com/saroshkhan270-ux/agentblazer-buildblazer
 The project includes a dedicated admin dashboard.
 
 **Admin Panel:**
-https://agentblazer-buildblazer-kh4p6qjwt-sarosh-k.vercel.app/admin
+https://agentblazer-buildblazer-kh4p6qjwt-sarosh-k.vercel.app#admin
 
 **Username:** `admin`
 
