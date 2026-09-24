@@ -4,11 +4,11 @@
 
 Official website for the **AgentBlazer Club**, Department of Computer Science & Engineering at **St Joseph Engineering College (SJEC), Mangaluru**.
 
-This project was developed as part of **AgentBlazer Club's Build Blazer – Phase 2**, where our team transformed the assigned design into a functional, interactive and deployed website.
+This project was developed **Team CodeStorm** as part of **AgentBlazer Club's Build Blazer – Phase 2**, where our team transformed the assigned design into a functional, interactive and deployed website.
 
 ---
 
-## 👥 Team
+## 👥 Team 
 
 | Role            | Name                   |
 | --------------- | ---------------------- |
